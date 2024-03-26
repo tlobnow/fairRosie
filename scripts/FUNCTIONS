@@ -14,8 +14,10 @@ determine_interfaces() {
 relax_rosetta() {
 	local dir="$1"
 	local S="$2"
+	local MYROSETTA="$3"
+
 	$ROSETTA3/bin/relax.mpi.linuxgccrelease \
-		-in:file:s "$S" \
+		-in:file:s $MYROSETTA/"$S" \
 		-relax:constrain_relax_to_start_coords \
 		-out:suffix _startconstraints \
 		-out:path:all "$dir" \

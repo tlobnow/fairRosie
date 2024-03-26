@@ -75,9 +75,16 @@ if [ "$run_relaxation_protocol" == "True" ]; then
 	chains=$(determine_interfaces "$MYROSETTA" "$S")
 	echo "Chains interfacing with A are: $chains"
 
+	echo ""
+	echo "************** FINISHED INTERFACE CHECK **************"
+	echo ""
+
 	# Perform relaxation on the structure
-	relax_rosetta "$analysis_dir" "$S"
-	echo "Finished relaxation."
+	relax_rosetta "$analysis_dir" "$S" "$MYROSETTA"
+
+	echo ""
+	echo "************** FINISHED RELAXATION PROTOCOL **************"
+	echo ""
 
 	# Change to the analysis directory for further processing.
 	cd "$analysis_dir"
