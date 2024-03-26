@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+# Determine the interfaces of chain A using the R script
+determine_interfaces() {
+	local MYROSETTA="$1"
+	local S="$2"
+	local output=$(R --vanilla --slave -f find_interface.R --args HOME_DIRECTORY=$MYROSETTA STRUCTURE_PATH=$S)
+	local chains=$(echo $output | cut -d '"' -f 2)
+	echo "Chains interfacing with A are: $chains"
+	echo $chains  # This will allow the function to "return" the chains value if needed elsewhere
+}
+
+# Perform relaxation on the structure
+relax_rosetta() {
+	local dir="$1"
+	local S="$2"
+	$ROSETTA3/bin/relax.mpi.linuxgccrelease \
+		-in:file:s "$S" \
+		-relax:constrain_relax_to_start_coords \
+		-out:suffix _startconstraints \
+		-out:path:all "$dir" \
+		-nstruct 5
+}
+
+# Compute the total score
+score_rosetta() {
+    local dir="$1"
+    local S="$2"
+    local native_file
+
+    if [ "$run_relaxation_protocol" == "True" ]; then
+        native_file="$MYROSETTA/$S"
+    elif [ "$run_symmetric_docking_protocol" == "True" ]; then
+        native_file="$S"
+    else
+        echo "Error: Neither protocol is set to True!"
+        return 1
+    fi
+
+    $ROSETTA3/bin/score.default.linuxgccrelease \
+        -in:file:s "$dir"/*.pdb \
+        -in:file:native "$native_file" \
+        -ignore_waters
+}
+
+
+process_default_sc() {
+	local dir="$1"
+	local title="$2"
+	if [[ -f "$dir"/default.sc ]]; then
+		echo "Title: " "$title"
+		echo "Analysis Directory: " "$dir"
+		awk '{print $NF, $2, $(NF-11), $(NF-1)}' "$dir"/default.sc > "$dir"/total_scores_$title.sc
+		if [[ $? -ne 0 ]]; then
+			echo "Error executing the awk command."
+			return 1
+		else
+			echo "Created $dir/total_scores_$title.sc"
+		fi
+	else
+		echo "Error: $dir/default.sc does not exist."
+		return 1
+	fi
+}
+
+analyze_interfaces() {
+	local dir="$1"
+	local chains="$2"
+	for i in $chains; do
+		$ROSETTA3/bin/InterfaceAnalyzer.mpi.linuxgccrelease \
+			-in:file:s "$dir"/*.pdb \
+			-interface A_$i \
+			-pack_input true \
+			-pack_separated true \
+			-out:file:score_only interface_A.sc \
+			-compute_packstat
+		mv interface_A.sc interface_A$i.sc
+		echo dG_A$i > dG_A$i.sc
+		awk '{print $6}' interface_A$i.sc | tail -n +3 >> dG_A$i.sc
+	done
+}
+
+symmetric_docking_rosetta() {
+	local input_path="$1"
+	local output_path="${2:-$input_path}"
+	local base_file=$(basename "$input_path" .pdb)
+	for a in {H..Q}; do
+		for b in {H..Q}; do
+			$ROSETTA3/src/apps/public/symmetry/make_symmdef_file.pl -m HELIX -a $a -b $b -t 10 -p "$input_path" > "$output_path"/"${base_file}".symm
+		done
+	done
+}

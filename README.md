@@ -87,3 +87,42 @@ python test/run.py --mode=debug -j
 
 This will initiate the unit tests. It will take several hours for all of the unit tests to finish. Keep an eye on it. At the end, the summary of the results of tests is printed into the terminal.
 
+## Introduction to Rosetta
+
+- [Getting Started](https://www.rosettacommons.org/docs/latest/getting_started/Getting-Started)
+- [Rosetta Tutorials](https://www.rosettacommons.org/demos/latest/Home#tutorials)
+
+
+### Setting up the ddG Pipeline
+
+```bash
+cd fairRosie
+mkdir output_files slurm_logs from_af2
+```
+
+- Load an R module (choose the latest version) and open R
+
+```bash
+module load R/4.2
+R
+```
+
+- Install the `bio3d` package
+
+```bash
+install.packages("bio3d")
+quit()
+```
+
+- Go into the `fairRosie` main folder and create necessary folders
+
+```bash
+cd ~/fairRosie
+mkdir flags from_af2 from_rcsb output_files scripts slurm_logs
+```
+
+- Enter the flags folder
+
+```bash
+cd ~/fairRosie/flags
+```
