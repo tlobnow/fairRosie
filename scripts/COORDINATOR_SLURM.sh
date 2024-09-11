@@ -125,8 +125,8 @@ if [ "$run_symmetric_docking_protocol" == "True" ]; then
 	echo "Array-ID is: ${SLURM_ARRAY_TASK_ID}"
         echo "New Path (S) to structure is: $S"
 
-	#symmetric_docking_rosetta "$S" "$renamed_dir"
-	#echo "Finished docking."
+	symmetric_docking_rosetta "$S" "$renamed_dir"
+	echo "Finished docking."
 
 	# Change to the analysis directory for further processing.
         cd "$renamed_dir"

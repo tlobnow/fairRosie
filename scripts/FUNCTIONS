@@ -6,7 +6,7 @@ determine_interfaces() {
 	local S="$2"
 	local output=$(R --vanilla --slave -f find_interface.R --args HOME_DIRECTORY=$MYROSETTA STRUCTURE_PATH=$S)
 	local chains=$(echo $output | cut -d '"' -f 2)
-	echo "Chains interfacing with A are: $chains"
+	#echo "Chains interfacing with A are: $chains"
 	echo $chains  # This will allow the function to "return" the chains value if needed elsewhere
 }
 
@@ -82,13 +82,26 @@ analyze_interfaces() {
 	done
 }
 
+#symmetric_docking_rosetta() {
+#	local input_path="$1"
+#	local output_path="${2:-$input_path}"
+#	local base_file=$(basename "$input_path" .pdb)
+#	for a in {A..M}; do
+#		for b in {A..M}; do
+#			$ROSETTA3/src/apps/public/symmetry/make_symmdef_file.pl -m HELIX -a $a -b $b -t 10 -p "$input_path" > "$output_path"/"${base_file}".symm
+#		done
+#	done
+#}
+
 symmetric_docking_rosetta() {
-	local input_path="$1"
-	local output_path="${2:-$input_path}"
-	local base_file=$(basename "$input_path" .pdb)
-	for a in {H..Q}; do
-		for b in {H..Q}; do
-			$ROSETTA3/src/apps/public/symmetry/make_symmdef_file.pl -m HELIX -a $a -b $b -t 10 -p "$input_path" > "$output_path"/"${base_file}".symm
-		done
-	done
+    local input_path="$1"
+    local output_path="${2:-$input_path}"
+    local base_file=$(basename "$input_path" .pdb)
+    for a in {A..M}; do
+        for b in $(eval echo {A..Z} | sed "s/[$a]//g"); do
+            	#$ROSETTA3/src/apps/public/symmetry/make_symmdef_file.pl -m HELIX -a $a -b $b -t 10 -p "$input_path" > "$output_path"/"${base_file}".symm
+		echo "Chain A: $a"
+		echo "Chain B: $b"
+        done
+    done
 }
